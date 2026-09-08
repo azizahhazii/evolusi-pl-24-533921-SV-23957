@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Catatan Keuangan Kos</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <main class="container">
+    <h1>Catatan Keuangan Kos</h1>
+    <p class="subtitle">Catat pemasukan dan pengeluaran selama tinggal di kos.</p>
+
+    <section class="ringkasan" aria-label="Ringkasan saldo">
+      <div class="kartu">
+        <span class="label">Total Masuk</span>
+        <span id="total-masuk" class="nilai nilai-masuk">Rp0</span>
+      </div>
+      <div class="kartu">
+        <span class="label">Total Keluar</span>
+        <span id="total-keluar" class="nilai nilai-keluar">Rp0</span>
+      </div>
+      <div class="kartu">
+        <span class="label">Saldo</span>
+        <span id="saldo" class="nilai nilai-saldo">Rp0</span>
+      </div>
+    </section>
+
+    <form id="form-transaksi">
+      <div class="baris-form">
+        <label for="tanggal">Tanggal</label>
+        <input type="date" id="tanggal" name="tanggal" required />
+      </div>
+      <div class="baris-form">
+        <label for="keterangan">Keterangan</label>
+        <input type="text" id="keterangan" name="keterangan" placeholder="Contoh: Bayar kos bulan Sept" required />
+      </div>
+      <div class="baris-form">
+        <label for="jenis">Jenis</label>
+        <select id="jenis" name="jenis">
+          <option value="masuk">Masuk</option>
+          <option value="keluar">Keluar</option>
+        </select>
+      </div>
+      <div class="baris-form">
+        <label for="jumlah">Jumlah (Rp)</label>
+        <input type="number" id="jumlah" name="jumlah" min="1" required />
+      </div>
+      <button type="submit">Tambah Transaksi</button>
+      <p id="pesan-error" class="pesan-error" role="alert"></p>
+    </form>
+
+    <table id="tabel-transaksi">
+      <thead>
+        <tr>
+          <th>Tanggal</th>
+          <th>Keterangan</th>
+          <th>Jenis</th>
+          <th>Jumlah</th>
+        </tr>
+      </thead>
+      <tbody id="daftar-transaksi">
+        <!-- diisi lewat app.js -->
+      </tbody>
+    </table>
+  </main>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>
