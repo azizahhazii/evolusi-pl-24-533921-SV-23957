@@ -174,6 +174,11 @@
       <p id="pesan-error" class="pesan-error" role="alert"></p>
     </form>
 
+    <div style="margin-bottom: 1rem;">
+      <label for="filter-bulan">Filter Bulan:</label>
+      <input type="month" id="filter-bulan">
+    </div>
+
     <table id="tabel-transaksi">
       <thead>
         <tr>
