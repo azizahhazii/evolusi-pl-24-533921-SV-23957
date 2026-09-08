@@ -9,19 +9,10 @@ const pesanError = document.getElementById('pesan-error');
 const elTotalMasuk = document.getElementById('total-masuk');
 const elTotalKeluar = document.getElementById('total-keluar');
 const elSaldo = document.getElementById('saldo');
-const elFilterBulan = document.getElementById('filter-bulan');
 
 function renderTabel() {
   tbody.innerHTML = '';
-
-  // Filter transaksi berdasarkan bulan jika input bulan diisi
-  const bulanDipilih = elFilterBulan ? elFilterBulan.value : '';
-  const transaksiTersaring = daftarTransaksi.filter((t) => {
-    if (!bulanDipilih) return true;
-    return t.tanggal.startsWith(bulanDipilih); // Format YYYY-MM
-  });
-
-  for (const t of transaksiTersaring) {
+  for (const t of daftarTransaksi) {
     const tr = document.createElement('tr');
     tr.innerHTML = `
       <td>${t.tanggal}</td>
@@ -60,11 +51,6 @@ form.addEventListener('submit', (event) => {
     pesanError.textContent = err.message;
   }
 });
-
-// Event listener untuk memfilter otomatis saat pilihan bulan berubah
-if (elFilterBulan) {
-  elFilterBulan.addEventListener('change', renderTabel);
-}
 
 renderTabel();
 renderRingkasan();
