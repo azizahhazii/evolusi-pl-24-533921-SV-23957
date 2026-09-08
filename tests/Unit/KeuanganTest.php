@@ -2,8 +2,8 @@
 
 namespace Tests\Unit;
 
-use PHPUnit\Framework\TestCase;
 use App\Services\KeuanganService;
+use PHPUnit\Framework\TestCase;
 
 class KeuanganTest extends TestCase
 {
@@ -12,7 +12,7 @@ class KeuanganTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->service = new KeuanganService();
+        $this->service = new KeuanganService;
     }
 
     public function test_tambah_transaksi_berhasil()
@@ -38,7 +38,7 @@ class KeuanganTest extends TestCase
         $data = [
             ['jenis' => 'masuk', 'jumlah' => 1000000],
             ['jenis' => 'keluar', 'jumlah' => 200000],
-            ['jenis' => 'masuk', 'jumlah' => 500000]
+            ['jenis' => 'masuk', 'jumlah' => 500000],
         ];
 
         $this->assertEquals(1500000, $this->service->hitungTotal($data, 'masuk'));
@@ -49,7 +49,7 @@ class KeuanganTest extends TestCase
     {
         $data = [
             ['jenis' => 'masuk', 'jumlah' => 1000000],
-            ['jenis' => 'keluar', 'jumlah' => 300000]
+            ['jenis' => 'keluar', 'jumlah' => 300000],
         ];
 
         $this->assertEquals(700000, $this->service->hitungSaldo($data));
