@@ -6,10 +6,10 @@ class KeuanganService
 {
     public function tambahTransaksi(array $daftar, array $transaksi): array
     {
-        if (!isset($transaksi['jumlah']) || !is_numeric($transaksi['jumlah']) || $transaksi['jumlah'] <= 0) {
+        if (! isset($transaksi['jumlah']) || ! is_numeric($transaksi['jumlah']) || $transaksi['jumlah'] <= 0) {
             throw new \InvalidArgumentException('Jumlah transaksi harus angka positif');
         }
-        if (!in_array($transaksi['jenis'] ?? '', ['masuk', 'keluar'])) {
+        if (! in_array($transaksi['jenis'] ?? '', ['masuk', 'keluar'])) {
             throw new \InvalidArgumentException('Jenis transaksi harus "masuk" atau "keluar"');
         }
         if (empty(trim($transaksi['keterangan'] ?? ''))) {
@@ -17,6 +17,7 @@ class KeuanganService
         }
 
         $daftar[] = $transaksi;
+
         return $daftar;
     }
 
@@ -37,6 +38,7 @@ class KeuanganService
         $bulat = round($angka);
         $negatif = $bulat < 0;
         $digit = number_format(abs($bulat), 0, ',', '.');
-        return ($negatif ? '-Rp' : 'Rp') . $digit;
+
+        return ($negatif ? '-Rp' : 'Rp').$digit;
     }
 }
