@@ -1,9 +1,0 @@
-{
-  "name": "evolusi-pl-24-533921-SV-23957",
-  "version": "1.0.0",
-  "description": "Catatan Keuangan Kos - tugas Evolusi & Konstruksi Perangkat Lunak",
-  "type": "module",
-  "scripts": {
-    "test": "node --test test/*.test.js"
-  }
-}
