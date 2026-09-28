@@ -1,0 +1,105 @@
+name: Frontend CI/CD
+
+# Push hanya dari main (untuk deploy). Pull Request dari branch mana pun tetap
+# menjalankan lint, test, dan build -- tapi job deploy akan di-skip.
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  # Gerbang 1 -- paling cepat, jadi paling depan
+  lint:
+    name: Frontend Lint
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci
+      - run: npm run lint
+
+  # Gerbang 2 -- unit test Vitest, TANPA Laravel berjalan
+  test:
+    name: Frontend Test
+    needs: lint
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci
+      - run: npm run test:unit
+
+  # Gerbang 3 -- satu-satunya tempat npm run build dijalankan
+  build:
+    name: Frontend Build
+    needs: test
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci
+      - run: npm run build
+        env:
+          # Bukan rahasia: nilai VITE_* akan tertanam di dist/ dan bisa dibaca siapa pun.
+          VITE_API_URL: ${{ vars.VITE_API_URL || 'http://127.0.0.1:8000' }}
+          BASE_PATH: /${{ github.event.repository.name }}/
+      - name: Simpan dist/ sebagai artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: frontend/dist
+          if-no-files-found: error
+
+  # Gerbang 4 -- TIDAK build ulang: tidak ada checkout, setup-node, npm ci, atau npm run build
+  deploy:
+    name: Frontend Deploy
+    needs: build
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Ambil dist/ dari job build
+        uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist
+      - name: Tampilkan isi dist/
+        run: |
+          echo "== Isi dist/ (hasil job build, tidak dibangun ulang) =="
+          ls -laR dist
+          echo
+          find dist -type f | sort
+          echo
+          du -sh dist
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+      - name: Deploy ke GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

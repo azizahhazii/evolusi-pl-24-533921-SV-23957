@@ -17,17 +17,18 @@ class TransaksiController extends Controller
     public function index(): View
     {
         $daftarTransaksi = Transaksi::orderByDesc('tanggal')->get();
+        $daftarArray = $daftarTransaksi->toArray();
 
         return view('transaksi.index', [
             'daftarTransaksi' => $daftarTransaksi,
             'totalMasuk' => $this->keuangan->formatRupiah(
-                $this->keuangan->hitungTotal($daftarTransaksi, 'masuk')
+                $this->keuangan->hitungTotal($daftarArray, 'masuk')
             ),
             'totalKeluar' => $this->keuangan->formatRupiah(
-                $this->keuangan->hitungTotal($daftarTransaksi, 'keluar')
+                $this->keuangan->hitungTotal($daftarArray, 'keluar')
             ),
             'saldo' => $this->keuangan->formatRupiah(
-                $this->keuangan->hitungSaldo($daftarTransaksi)
+                $this->keuangan->hitungSaldo($daftarArray)
             ),
         ]);
     }
