@@ -1,0 +1,53 @@
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  background: #f5f6fa;
+  color: #1f2933;
+}
+
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  padding: 1rem 2rem;
+  background: #fff;
+  border-bottom: 1px solid #e5e8ec;
+}
+.topbar h1 { margin: 0; font-size: 1.25rem; }
+.topbar nav { display: flex; gap: 1rem; }
+.topbar a { color: #616e7c; text-decoration: none; }
+.topbar a.router-link-exact-active { color: #1971c2; font-weight: 600; }
+
+.konten { max-width: 760px; margin: 1.5rem auto; padding: 0 1rem; }
+
+.ringkasan { display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 1.5rem; }
+.kartu {
+  flex: 1; min-width: 150px; padding: 1rem;
+  background: #fff; border-radius: 8px;
+  display: flex; flex-direction: column; gap: 0.25rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+.label { font-size: 0.85rem; color: #616e7c; }
+.nilai { font-size: 1.25rem; font-weight: 700; }
+.masuk { color: #2f9e44; }
+.keluar { color: #e03131; }
+.saldo { color: #1971c2; }
+
+table { width: 100%; border-collapse: collapse; background: #fff; border-radius: 8px; }
+th, td { text-align: left; padding: 0.6rem 0.75rem; border-bottom: 1px solid #e5e8ec; }
+th { color: #616e7c; font-size: 0.85rem; }
+
+.galat {
+  padding: 1rem; border-radius: 8px;
+  background: #fff5f5; border: 1px solid #ffc9c9; color: #c92a2a;
+}
+.galat p { margin: 0 0 0.75rem; }
+button {
+  padding: 0.5rem 1rem; border: none; border-radius: 6px;
+  background: #1971c2; color: #fff; cursor: pointer;
+}
+code { background: #e9ecef; padding: 0.1rem 0.35rem; border-radius: 4px; }
