@@ -1,32 +1,106 @@
-name: CI
+name: CI/CD
 
 on:
   push:
-    branches: [ main, dev ]
+    branches: ['**']
   pull_request:
-    branches: [ main, dev ]
+    branches: [dev, main]
 
 jobs:
-  uji:
+  build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Setup PHP
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: '8.3'
-      - run: composer install --prefer-dist --no-progress
-      - run: cp .env.example .env
-      - run: php artisan key:generate
-      - run: php artisan test
 
-  lint:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.3'
-      - run: composer install --prefer-dist --no-progress
-      - run: ./vendor/bin/pint --test
+          extensions: mbstring, xml, sqlite3, pdo_sqlite
+
+      - name: Pasang dependensi
+        run: composer install --no-progress --prefer-dist
+
+      - name: Simpan vendor sebagai artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: vendor-build
+          path: vendor/
+          retention-days: 1
+
+  test:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: mbstring, xml, sqlite3, pdo_sqlite
+
+      - name: Ambil vendor dari job build
+        uses: actions/download-artifact@v4
+        with:
+          name: vendor-build
+          path: vendor/
+
+      - name: Siapkan environment pengujian
+        run: |
+          cp .env.example .env
+          php artisan key:generate
+
+      - name: Siapkan basis data sqlite sementara
+        run: |
+          mkdir -p database
+          touch database/database.sqlite
+        env:
+          DB_CONNECTION: sqlite
+          DB_DATABASE: database/database.sqlite
+
+      - name: Jalankan migrasi
+        run: php artisan migrate --force
+        env:
+          DB_CONNECTION: sqlite
+          DB_DATABASE: database/database.sqlite
+
+      - name: Jalankan pengujian
+        run: php artisan test
+        env:
+          DB_CONNECTION: sqlite
+          DB_DATABASE: database/database.sqlite
+
+  staging:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy ke staging (simulasi)
+        run: |
+          echo "== Deploy ke server STAGING =="
+          echo "Server tiruan, aman untuk dicoba sebelum production."
+          echo "Build dan test sudah hijau, siap disalurkan ke staging."
+
+  production:
+    needs: staging
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Tampilkan 7 langkah deploy.sh (belum ke server sungguhan)
+        run: |
+          echo "== Simulasi deployment production =="
+          echo "Skrip nyata tersimpan di deploy.sh (belum dieksekusi ke server)."
+          echo ""
+          echo "1. Kunci pintu — php artisan down --retry=60"
+          echo "2. Ambil kode terbaru — git pull origin main"
+          echo "3. Pasang dependensi (tanpa dev) — composer install --no-dev --optimize-autoloader"
+          echo "4. Ubah skema basis data — php artisan migrate --force"
+          echo "5. Bangun ulang cache — php artisan config:cache, route:cache, view:cache"
+          echo "6. Muat ulang pekerja antrean — php artisan queue:restart"
+          echo "7. Buka pintu kembali — php artisan up"
+          echo ""
+          echo "Isi deploy.sh sesungguhnya:"
+          cat deploy.sh
