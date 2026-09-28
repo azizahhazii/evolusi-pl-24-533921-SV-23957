@@ -1,5 +1,4 @@
 name: Frontend CI/CD
-
 on:
   push:
     branches: [main]
@@ -79,6 +78,19 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
+  # Gerbang 4 -- TIDAK build ulang: tidak ada checkout, setup-node, npm ci, atau npm run build
+  deploy:
+    name: Frontend Deploy
+    needs: build
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
       - name: Ambil dist/ dari job build
         uses: actions/download-artifact@v4
         with:
@@ -104,3 +116,18 @@ jobs:
           npm install --global vercel
           vercel pull --yes --environment=production --token=$VERCEL_TOKEN
           vercel deploy --prebuilt --prod --token=$VERCEL_TOKEN
+          path: dist
+      - name: Tampilkan isi dist/
+        run: |
+          echo "== Isi dist/ (hasil job build, tidak dibangun ulang) =="
+          ls -laR dist
+          echo
+          find dist -type f | sort
+          echo
+          du -sh dist
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+      - name: Deploy ke GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

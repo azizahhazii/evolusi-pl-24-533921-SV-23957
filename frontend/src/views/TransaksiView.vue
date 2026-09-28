@@ -21,6 +21,7 @@ async function muat() {
     daftar.value = []
     // Pesan error eksplisit jika Laravel offline / gagal dihubungi
     pesanError.value = 'Gagal terhubung ke server API Laravel. Pastikan backend berjalan dan endpoint dapat diakses.'
+    pesanError.value = err.message
   } finally {
     memuat.value = false
   }
@@ -50,6 +51,7 @@ onMounted(muat)
 
     <div v-else-if="pesanError" class="galat" role="alert">
       <p>⚠️ {{ pesanError }}</p>
+      <p>{{ pesanError }}</p>
       <button type="button" @click="muat">Coba lagi</button>
     </div>
 
@@ -74,4 +76,5 @@ onMounted(muat)
       </tbody>
     </table>
   </section>
+</template>
 </template>
