@@ -1,7 +1,4 @@
 name: Frontend CI/CD
-
-# Push hanya dari main (untuk deploy). Pull Request dari branch mana pun tetap
-# menjalankan lint, test, dan build -- tapi job deploy akan di-skip.
 on:
   push:
     branches: [main]
@@ -71,6 +68,16 @@ jobs:
           path: frontend/dist
           if-no-files-found: error
 
+  # Gerbang 4 -- TIDAK build ulang: deploy ke Vercel menggunakan artifact dist/
+  deploy:
+    name: Frontend Deploy (Vercel)
+    needs: build
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
   # Gerbang 4 -- TIDAK build ulang: tidak ada checkout, setup-node, npm ci, atau npm run build
   deploy:
     name: Frontend Deploy
@@ -88,6 +95,27 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: dist
+          path: frontend/dist
+
+      - name: Tampilkan isi dist/
+        run: |
+          echo "== Isi dist/ (hasil job build, tidak dibangun ulang) =="
+          ls -laR frontend/dist
+          echo
+          find frontend/dist -type f | sort
+          echo
+          du -sh frontend/dist
+
+      - name: Deploy dist/ ke Vercel tanpa build ulang
+        working-directory: ./frontend
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+        run: |
+          npm install --global vercel
+          vercel pull --yes --environment=production --token=$VERCEL_TOKEN
+          vercel deploy --prebuilt --prod --token=$VERCEL_TOKEN
           path: dist
       - name: Tampilkan isi dist/
         run: |
