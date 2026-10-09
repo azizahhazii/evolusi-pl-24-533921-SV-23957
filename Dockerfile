@@ -1,10 +1,9 @@
-# 1. Gunakan Base Image PHP resmi dengan tag spesifik (Alpine agar ringan)
-FROM php:8.3-cli-alpine
+# STAGE 1: Builder (Tahap Membangun)
+FROM php:8.3-cli-alpine AS builder
 
-# 2. Tentukan folder kerja di dalam container
 WORKDIR /var/www
 
-# 3. Pasang dependensi sistem & ekstensi PHP yang dibutuhkan Laravel
+# Pasang dependensi build & ekstensi PHP
 RUN apk add --no-cache \
     zip \
     unzip \
@@ -15,25 +14,50 @@ RUN apk add --no-cache \
     sqlite-dev \
     && docker-php-ext-install pdo pdo_sqlite pdo_mysql bcmath
 
-# 4. Salin Composer dari image resmi
-COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+# Copy composer dari official image
+COPY --from=composer:2.8 /usr/bin/composer /usr/bin/composer
 
-# 5. SALIN DULU DAFTAR DEPENDENSI (Trik Cache Docker)
+# Copy dependensi composer dan install (tanpa dev)
 COPY composer.json composer.lock ./
+RUN composer install --no-dev --no-scripts --no-autoloader --prefer-dist
 
-# 6. Pasang dependensi PHP tanpa kode aplikasi dulu
-RUN composer install --no-dev --no-scripts --no-autoloader
-
-# 7. BARU SALIN SELURUH KODE APLIKASI (Layer ini yang akan berubah jika kode diedit)
+# Copy seluruh kode sumber aplikasi
 COPY . .
 
-# 8. Optimize autoloader & persiapkan file .env bawaan
+# Optimize autoloader & generate key
 RUN composer dump-autoload --optimize \
     && cp .env.example .env \
     && php artisan key:generate
 
-# 9. Informasi port yang digunakan
+# STAGE 2: Runner (Tahap Menjalankan Aplikasi)
+FROM php:8.3-cli-alpine AS runner
+
+WORKDIR /var/www
+
+# Pasang runtime library minimal yang dibutuhkan ekstensi & healthcheck
+RUN apk add --no-cache \
+    curl \
+    libpng \
+    libxml2 \
+    sqlite-libs
+
+# Salin ekstensi PHP yang sudah dikompilasi dari Stage Builder
+COPY --from=builder /usr/local/lib/php/extensions /usr/local/lib/php/extensions
+COPY --from=builder /usr/local/etc/php/conf.d /usr/local/etc/php/conf.d
+
+# Salin kode aplikasi dari Stage Builder
+COPY --from=builder /var/www /var/www
+
+# Atur hak akses seluruh direktori ke user www-data
+RUN chown -R www-data:www-data /var/www
+
+# Jalankan container sebagai user NON-ROOT
+USER www-data
+
+# Konfigurasi HEALTHCHECK menggunakan IP IPv4 spesifik (127.0.0.1)
+HEALTHCHECK --interval=5s --timeout=3s --retries=3 \
+  CMD curl -f http://127.0.0.1:8000/ || exit 1
+
 EXPOSE 8000
 
-# 10. Perintah saat container dinyalakan
 CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=8000"]
